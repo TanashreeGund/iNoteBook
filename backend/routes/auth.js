@@ -22,10 +22,11 @@ router.post('/createuser', [
     }
 
     try {
+        let success = false;
         //check whether user with same exists already
         let user = await User.findOne({ email: req.body.email });
         if (user) {
-            return res.status(400).json({ errors: "User with same email already exists" })
+            return res.status(400).json({success, errors: "User with same email already exists" })
         }
         const salt = await bcrypt.genSalt(10);
         const secPass = await bcrypt.hash(req.body.password, salt);
@@ -48,7 +49,8 @@ router.post('/createuser', [
         }
         const authToken = jwt.sign(data, JWT_SECRET);
         // console.log(authToken);
-        res.json({ authToken });
+        success=true;
+        res.json({ success,authToken });
     }
     catch (err) {
         console.error(err.message);
@@ -67,13 +69,14 @@ router.post('/login', [
 
     const { email, password } = req.body;
     try {
+        let success = false;
         let user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ errors: "Please try to login with correct cerdentials" });
+            return res.status(400).json({success, errors: "Please try to login with correct cerdentials" });
         }
         const passCompare = await bcrypt.compare(password,user.password);
         if (!passCompare) {
-            return res.status(400).json({ errors: "Please try to login with correct cerdentials" });
+            return res.status(400).json({success, errors: "Please try to login with correct cerdentials" });
         }
         const data = {
             user: {
@@ -81,7 +84,8 @@ router.post('/login', [
             }
         }
         const authToken = jwt.sign(data, JWT_SECRET);
-        res.json({authToken});
+        success=true;
+        res.json({success,authToken});
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Internal Server Error");
